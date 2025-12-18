@@ -120,9 +120,24 @@ function shuffle(arr) {
 
 /**************** DATA LOAD ****************/
 async function loadWords() {
-  const res = await fetch(SHEET_URL);
-  const data = await res.json();
-  WORDS = data;
+  const match = SHEET_URL.match(/spreadsheets\/d\/([^/]+)/);
+  if (!match) throw new Error('Sheet URL không hợp lệ');
+
+  const sheetId = match[1];
+  const gvizUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&_ts=${Date.now()}`;
+
+  const res = await fetch(gvizUrl);
+  const text = await res.text();
+  const json = JSON.parse(text.substring(47, text.length - 2));
+
+  WORDS = json.table.rows
+    .map(r => ({
+      time: r.c?.[0]?.v || '',
+      owner: r.c?.[1]?.v || '',
+      en: r.c?.[2]?.v || '',
+      vi: r.c?.[3]?.v || ''
+    }))
+    .filter(w => w.en && w.vi);
 }
 
 /**************** START ****************/
