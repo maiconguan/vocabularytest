@@ -34,8 +34,10 @@
 
     label { font-weight:600; display:block; margin-top:14px; color:#c7d2fe; }
     input, select {
-      width:100%; padding:12px 14px; margin-top:6px;
-      border-radius:12px; border:1px solid #334155; font-size:15px;
+      width:100%; padding:12px; margin-top:6px;
+      border-radius:10px; border:1px solid #ccc; font-size:15px;
+      box-sizing:border-box;
+    }
       background:#1e293b; color:#e5e7eb;
     }
 
@@ -86,6 +88,46 @@
     .error {
       color:#b91c1c; font-weight:700; text-align:center;
     }
+    button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 22px;
+  border: none;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .25s ease;
+}
+
+button.primary {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #fff;
+  box-shadow: 0 10px 22px rgba(99,102,241,.4);
+}
+
+button.primary:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 14px 30px rgba(99,102,241,.55);
+}
+
+button.secondary {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+button.secondary:hover {
+  background: #e5e7eb;
+  transform: translateY(-1px);
+}
+
+button:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+}
+
   </style>
 </head>
 <body>
@@ -113,7 +155,10 @@
   <div id="sliderInfo"></div>
 
   <div style="display:flex;justify-content:center;margin-top:28px">
-    <button class="primary" style="font-size:18px;padding:16px 36px" onclick="startTest()">🚀 Start Test</button>
+    <button class="primary" onclick="startTest()" style="margin:20px auto 0; width:260px; font-size:18px;">
+  🚀 Bắt đầu làm bài
+</button>
+
   </div>
   <p class="error" id="errorMsg"></p>
 </div>
@@ -268,7 +313,7 @@ function renderTest() {
   const submit = document.createElement('button');
   submit.className = 'primary';
   submit.style.marginTop = '24px';
-  submit.innerText = 'Submit';
+  submit.innerHTML = '✅ Nộp bài';
   submit.onclick = submitTest;
   box.appendChild(submit);
 }
@@ -305,7 +350,7 @@ function submitTest() {
 
   const r = document.getElementById('result');
   r.style.display = 'block';
-  r.innerHTML = `<h2>Kết quả</h2><p>${correct}/${questions.length} (${percent}%)</p><p>${msg}</p><button class="secondary" onclick="location.reload()">Test lại</button>`;
+  r.innerHTML = `<h2>Kết quả</h2><p>${correct}/${questions.length} (${percent}%)</p><p>${msg}</p><button class="secondary" onclick="location.reload()">🔄 Test lại</button>`;
 }
 </script>
 
