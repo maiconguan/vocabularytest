@@ -166,7 +166,15 @@ function renderTest() {
       const btn = document.createElement('button');
       btn.className = 'secondary';
       btn.innerText = opt;
-      btn.onclick = () => answers[i] = opt;
+
+      btn.onclick = () => {
+        // clear previous highlight
+        optDiv.querySelectorAll('button').forEach(b => b.classList.remove('selected'));
+        // highlight selected
+        btn.classList.add('selected');
+        answers[i] = opt;
+      };
+
       optDiv.appendChild(btn);
     });
 
