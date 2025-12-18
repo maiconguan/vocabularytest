@@ -2,160 +2,69 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <title>Flashcard Test</title>
+  <title>Vocabulary Test</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
-    :root{
-      --primary:#6366f1;
-      --primary-dark:#4f46e5;
-      --bg:#f1f5f9;
-      --card:#ffffff;
-      --success:#22c55e;
-      --error:#ef4444;
-      --muted:#64748b;
-    }
-
     body {
-      font-family: "Inter", system-ui, Arial, sans-serif;
-      background: linear-gradient(135deg, #eef2ff, #f8fafc);
-      margin: 0;
-      padding: 20px;
-      color:#0f172a;
+      font-family: system-ui, Arial, sans-serif;
+      background: linear-gradient(135deg, #eef2ff, #fdf4ff);
+      margin: 0; padding: 20px;
     }
-
-    h1 {
-      text-align: center;
-      font-size: 28px;
-      margin-bottom: 24px;
-    }
-
-    h2 { margin-top:0 }
-
+    h1 { text-align:center; margin-bottom:20px; }
     .card {
-      background: var(--card);
-      border-radius: 18px;
-      padding: 24px;
-      max-width: 820px;
-      margin: 0 auto 24px;
-      box-shadow: 0 15px 35px rgba(15,23,42,.12);
+      background:#fff;
+      border-radius:18px;
+      padding:24px;
+      max-width:900px;
+      margin:0 auto 24px;
+      box-shadow:0 12px 30px rgba(0,0,0,.12);
       animation: fadeIn .4s ease;
     }
+    @keyframes fadeIn { from{opacity:0; transform:translateY(10px)} to{opacity:1} }
 
-    @keyframes fadeIn {
-      from { opacity:0; transform: translateY(10px); }
-      to { opacity:1; transform: translateY(0); }
-    }
-
-    label {
-      font-weight: 600;
-      margin-top: 14px;
-      display:block;
-      color:#1e293b;
-    }
-
+    label { font-weight:600; display:block; margin-top:14px; }
     input, select {
-      width: 100%;
-      padding: 12px 14px;
-      margin-top: 8px;
-      border-radius: 12px;
-      border: 1px solid #c7d2fe;
-      font-size: 15px;
-      outline:none;
-    }
-
-    input:focus, select:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(99,102,241,.2);
-    }
-
-    .slider-wrap { margin-top: 10px; }
-
-    .slider-label {
-      display: flex;
-      justify-content: space-between;
-      font-size: 14px;
-      color: var(--muted);
-      margin-top: 6px;
+      width:100%; padding:12px; margin-top:6px;
+      border-radius:10px; border:1px solid #ccc; font-size:15px;
     }
 
     button {
-      padding: 14px 18px;
-      border: none;
-      border-radius: 14px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all .2s ease;
+      padding:14px 20px; border:none; border-radius:12px;
+      font-size:16px; font-weight:700; cursor:pointer;
+      transition:.2s ease;
     }
+    button.primary { background:#6366f1; color:#fff; }
+    button.primary:hover { background:#4f46e5; }
+    button.secondary { background:#e5e7eb; }
+    button.secondary:hover { background:#d1d5db; }
+    button:disabled { opacity:.6; cursor:not-allowed; }
 
-    button.primary {
-      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-      color: #fff;
-      box-shadow: 0 8px 20px rgba(79,70,229,.35);
-    }
-
-    button.primary:hover { transform: translateY(-1px); }
-
-    button.secondary {
-      background: #eef2ff;
-      color: #1e293b;
-    }
-
-    button.secondary:hover { background:#e0e7ff; }
-
-    button:disabled { opacity:.6; cursor:not-allowed; box-shadow:none; }
-
-    .question {
-      margin-top: 22px;
-      padding: 18px;
-      border-radius: 16px;
-      background: #f8fafc;
-      border:1px solid #e5e7eb;
-    }
-
+    .question { margin-top:26px; }
     .options button {
-      width: 100%;
-      margin-top: 12px;
-      text-align: left;
-      position: relative;
+      width:100%; text-align:left; margin-top:10px;
     }
-
     .options button.selected {
-      background: #c7d2fe;
-      border: 2px solid var(--primary);
+      outline:3px solid #6366f1;
+      background:#eef2ff;
     }
+    .options button.correct { background:#dcfce7; }
+    .options button.incorrect { background:#fee2e2; }
 
-    .options button.correct {
-      background: #dcfce7 !important;
-      border: 2px solid var(--success);
-    }
-
-    .options button.incorrect {
-      background: #fee2e2 !important;
-      border: 2px solid var(--error);
+    .answer-correct {
+      margin-top:8px; font-size:14px; color:#16a34a; font-weight:600;
     }
 
     .result {
-      text-align: center;
-      font-size: 18px;
+      text-align:center; font-size:18px;
     }
-
-    .badge {
-      display:inline-block;
-      padding:6px 12px;
-      border-radius:999px;
-      font-size:14px;
-      font-weight:600;
-      margin-top:8px;
+    .error {
+      color:#b91c1c; font-weight:700; text-align:center;
     }
-
-    .badge.success { background:#dcfce7; color:#166534 }
-    .badge.error { background:#fee2e2; color:#991b1b }
   </style>
 </head>
 <body>
 
-<h1>📝 Vocabulary Test</h1>
+<h1>🧠 Vocabulary Test</h1>
 
 <div class="card" id="config">
   <label>User</label>
@@ -171,41 +80,31 @@
   </select>
 
   <label>Phân bố câu hỏi</label>
-  <div class="slider-wrap">
-    <input type="range" id="meaningCount" min="0" value="5" />
-    <div class="slider-label">
-      <span>Meaning</span>
-      <span>Listening</span>
-    </div>
-    <div id="sliderInfo"></div>
-  </div>
+  <input type="range" id="meaningCount" min="0" value="5" />
+  <div id="sliderInfo"></div>
 
   <br />
   <button class="primary" onclick="startTest()">Start</button>
+  <p class="error" id="errorMsg"></p>
 </div>
 
 <div class="card" id="test" style="display:none"></div>
 <div class="card" id="result" style="display:none"></div>
 
 <script>
-/*********** MOCK DATA (thay bằng fetch từ Apps Script) ***********/
-const WORDS = [
-  { time:'2025-12-17T08:00:00Z', owner:'All', en:'teacher', vi:'giáo viên' },
-  { time:'2025-12-17T08:00:01Z', owner:'All', en:'student', vi:'học sinh' },
-  { time:'2025-12-17T08:00:02Z', owner:'sunny@gmail.com', en:'book', vi:'quyển sách' },
-  { time:'2025-12-17T08:00:03Z', owner:'All', en:'school', vi:'trường học' },
-  { time:'2025-12-17T08:00:04Z', owner:'sunny@gmail.com', en:'pen', vi:'cây bút' }
-];
+/**************** CONFIG ****************/
+const SHEET_URL = 'PASTE_YOUR_GOOGLE_SHEET_JSON_URL_HERE';
 
+/**************** STATE ****************/
+let WORDS = [];
 let questions = [];
 let answers = {};
 
 const slider = document.getElementById('meaningCount');
 const sliderInfo = document.getElementById('sliderInfo');
 
-slider.oninput = () => updateSlider();
-
-document.getElementById('total').oninput = () => updateSlider();
+slider.oninput = updateSlider;
+document.getElementById('total').oninput = updateSlider;
 
 function updateSlider() {
   const total = +document.getElementById('total').value || 0;
@@ -219,25 +118,42 @@ function shuffle(arr) {
   return [...arr].sort(() => Math.random() - 0.5);
 }
 
-function startTest() {
+/**************** DATA LOAD ****************/
+async function loadWords() {
+  const res = await fetch(SHEET_URL);
+  const data = await res.json();
+  WORDS = data;
+}
+
+/**************** START ****************/
+async function startTest() {
+  document.getElementById('errorMsg').innerText = '';
+  await loadWords();
+
   const user = document.getElementById('user').value.trim();
   const total = +document.getElementById('total').value;
   const meaningCount = +slider.value;
-  const listeningCount = total - meaningCount;
   const mode = document.getElementById('mode').value;
 
   let pool = WORDS.filter(w => w.owner === 'All' || w.owner === user);
 
-  if (mode === 'recent') {
-    pool.sort((a,b) => new Date(b.time) - new Date(a.time));
-  } else {
-    pool = shuffle(pool);
+  if (pool.length === 0) {
+    document.getElementById('errorMsg').innerText = '❌ Không có từ nào để tạo bài test';
+    return;
   }
+
+  if (mode === 'recent') pool.sort((a,b)=>new Date(b.time)-new Date(a.time));
+  else pool = shuffle(pool);
 
   pool = pool.slice(0, total);
 
+  if (pool.length === 0) {
+    document.getElementById('errorMsg').innerText = '❌ Không đủ dữ liệu để làm bài test';
+    return;
+  }
+
   const meaningWords = shuffle(pool).slice(0, meaningCount);
-  const listeningWords = shuffle(pool).slice(0, listeningCount);
+  const listeningWords = shuffle(pool).slice(0, total - meaningCount);
 
   questions = [
     ...meaningWords.map(w => createMeaningQ(w, pool)),
@@ -245,7 +161,6 @@ function startTest() {
   ];
 
   questions = shuffle(questions);
-
   document.getElementById('config').style.display = 'none';
   renderTest();
 }
@@ -272,6 +187,7 @@ function speak(text) {
   speechSynthesis.speak(u);
 }
 
+/**************** RENDER ****************/
 function renderTest() {
   const box = document.getElementById('test');
   box.style.display = 'block';
@@ -281,11 +197,9 @@ function renderTest() {
     const div = document.createElement('div');
     div.className = 'question';
 
-    if (q.type === 'meaning') {
-      div.innerHTML = `<b>${i+1}. ${q.en}</b>`;
-    } else {
-      div.innerHTML = `<b>${i+1}. Listening</b> <button onclick="speak('${q.audio}')">🔊</button>`;
-    }
+    div.innerHTML = q.type==='meaning'
+      ? `<b>${i+1}. ${q.en}</b>`
+      : `<b>${i+1}. Listening</b> <button onclick="speak('${q.audio}')">🔊</button>`;
 
     const optDiv = document.createElement('div');
     optDiv.className = 'options';
@@ -294,15 +208,11 @@ function renderTest() {
       const btn = document.createElement('button');
       btn.className = 'secondary';
       btn.innerText = opt;
-
       btn.onclick = () => {
-        // clear previous highlight
         optDiv.querySelectorAll('button').forEach(b => b.classList.remove('selected'));
-        // highlight selected
         btn.classList.add('selected');
         answers[i] = opt;
       };
-
       optDiv.appendChild(btn);
     });
 
@@ -312,41 +222,45 @@ function renderTest() {
 
   const submit = document.createElement('button');
   submit.className = 'primary';
-  submit.style.marginTop = '20px';
+  submit.style.marginTop = '24px';
   submit.innerText = 'Submit';
   submit.onclick = submitTest;
   box.appendChild(submit);
 }
 
+/**************** SUBMIT ****************/
 function submitTest() {
-  // disable all option buttons
-  document.querySelectorAll('.options button').forEach(b => b.disabled = true);
-
-  // disable submit button
-  const submitBtn = document.querySelector('#test button.primary');
-  if (submitBtn) submitBtn.disabled = true;
-
+  const box = document.getElementById('test');
+  const qs = box.querySelectorAll('.question');
   let correct = 0;
-  questions.forEach((q,i) => {
+
+  qs.forEach((div,i) => {
+    const q = questions[i];
+    const btns = div.querySelectorAll('button.secondary');
+    btns.forEach(b => {
+      b.disabled = true;
+      if (b.innerText === q.answer) b.classList.add('correct');
+      if (answers[i] === b.innerText && b.innerText !== q.answer)
+        b.classList.add('incorrect');
+    });
     if (answers[i] === q.answer) correct++;
+
+    if (answers[i] !== q.answer) {
+      const c = document.createElement('div');
+      c.className = 'answer-correct';
+      c.innerText = `Đáp án đúng: ${q.answer}`;
+      div.appendChild(c);
+    }
   });
 
+  box.querySelector('button.primary').disabled = true;
+
   const percent = Math.round(correct / questions.length * 100);
-  let msg = 'Cần cố gắng thêm';
-  if (percent >= 90) msg = 'Bạn làm rất tốt! 🌟';
-  else if (percent >= 75) msg = 'Kết quả rất khá 👍';
-  else if (percent >= 60) msg = 'Ổn, cần luyện thêm';
-  else if (percent >= 40) msg = 'Chưa tốt lắm';
+  let msg = percent>=90?'🌟 Bạn làm rất tốt!':percent>=75?'👍 Kết quả rất khá':percent>=60?'🙂 Ổn, cần luyện thêm':'💪 Cố gắng thêm nhé';
 
   const r = document.getElementById('result');
   r.style.display = 'block';
-  r.innerHTML = `
-    <h2>Kết quả</h2>
-    <p>${correct}/${questions.length} (${percent}%)</p>
-    <p>${msg}</p>
-    <br />
-    <button class="primary" onclick="location.reload()">🔄 Test lại</button>
-  `;
+  r.innerHTML = `<h2>Kết quả</h2><p>${correct}/${questions.length} (${percent}%)</p><p>${msg}</p><button class="secondary" onclick="location.reload()">Test lại</button>`;
 }
 </script>
 
