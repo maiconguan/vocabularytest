@@ -73,6 +73,13 @@
 
     .answer-correct { margin-top:8px; font-size:14px; color:#16a34a; font-weight:600; }
     .error { color:#b91c1c; font-weight:700; text-align:center; }
+    .listen-btn {
+        background: linear-gradient(135deg, #22c55e, #16a34a);
+        color: #ffffff;
+        border-radius: 999px;
+        box-shadow: 0 6px 16px rgba(34,197,94,.45);
+      }
+
   </style>
 </head>
 <body>
@@ -192,7 +199,7 @@ function renderTest() {
     div.className = 'question';
     div.innerHTML = q.type==='meaning'
       ? `<b>${i+1}. ${q.en}</b>`
-      : `<b>${i+1}. Listening</b> <button class="secondary" onclick="speak('${q.audio}')">🔊 Nghe</button>`;
+      : `<b>${i+1}. Listening</b> <button class="listen-btn" onclick="speak('${q.audio}')">🔊 Nghe</button>`;
 
     const opt = document.createElement('div'); opt.className='options';
     q.options.forEach(o=>{
