@@ -111,7 +111,7 @@
 <div class="card" id="result" style="display:none"></div>
 
 <script>
-const SHEET_URL='https://docs.google.com/spreadsheets/d/1vmqYN5_0lku8q97oxQP3ppQLtSOxTZtL_L0fnAPnF2Y/edit';
+const API_URL = 'https://script.google.com/macros/s/AKfycbybroEtM4EMi0dzbiZQGcCeOKPY3sXFhnpBhsHnMYdODapD8gTa7LSwmo_mK3C9FC__/exec';
 
 let WORDS=[],questions=[],answers={};
 
@@ -137,29 +137,44 @@ updateSlider();
 
 const shuffle=a=>[...a].sort(()=>Math.random()-0.5);
 
-async function loadWords(){
-  const sheetId=SHEET_URL.match(/spreadsheets\/d\/([^/]+)/)[1];
-  const res=await fetch(`https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&_ts=${Date.now()}`);
-  const text=await res.text();
-  const json=JSON.parse(text.substring(47,text.length-2));
-  WORDS=json.table.rows.map(r=>({
-    time:r.c?.[0]?.v||'',
-    owner:r.c?.[1]?.v||'',
-    en:r.c?.[2]?.v||'',
-    vi:r.c?.[3]?.v||''
-  })).filter(w=>w.en&&w.vi);
+async function loadWords(user) {
+  const url = `${API_URL}?type=test&owner=${encodeURIComponent(user || 'All')}`;
+
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Không kết nối được server');
+
+  const json = await res.json();
+
+  if (!json.success || !Array.isArray(json.data)) {
+    throw new Error('Dữ liệu trả về không hợp lệ');
+  }
+
+  WORDS = json.data; // ✅ CHỈ LẤY data
 }
+
+
 
 async function startTest(){
   errorMsg.innerText='';
-  await loadWords();
 
-  const user=userInput.value.trim();
+  const user = userInput.value.trim() || 'All';
+
+  try {
+    await loadWords(user);
+  } catch(e){
+    errorMsg.innerText='❌ Lỗi tải dữ liệu: ' + e.message;
+    return;
+  }
+
+  // await loadWords();
+  
   const total=+totalInput.value;
   const meaningCount=+slider.value;
   const mode=modeSelect.value;
 
-  let pool=WORDS.filter(w=>w.owner==='All'||w.owner===user);
+  // let pool=WORDS.filter(w=>w.owner==='All'||w.owner===user);
+  let pool = [...WORDS]; //already filtered at server side
+
   if(!pool.length){errorMsg.innerText='❌ Không có từ nào';return;}
 
   pool=mode==='recent'
