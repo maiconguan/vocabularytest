@@ -137,20 +137,23 @@ updateSlider();
 
 const shuffle=a=>[...a].sort(()=>Math.random()-0.5);
 
-async function loadWords(user) {
-  const url = `${API_URL}?type=test&owner=${encodeURIComponent(user || 'All')}`;
+async function loadWords(user, total, mode) {
+
+  const url =
+    `${API_URL}?owner=${encodeURIComponent(user)}` +
+    `&limit=${total}` +
+    `&mode=${mode}` +
+    `&ts=${Date.now()}`;
 
   const res = await fetch(url);
   if (!res.ok) throw new Error('Không kết nối được server');
 
   const json = await res.json();
+  if (!json.success) throw new Error(json.error);
 
-  if (!json.success || !Array.isArray(json.data)) {
-    throw new Error('Dữ liệu trả về không hợp lệ');
-  }
-
-  WORDS = json.data; // ✅ CHỈ LẤY data
+  WORDS = json.data;
 }
+
 
 
 
@@ -158,31 +161,30 @@ async function startTest(){
   errorMsg.innerText='';
 
   const user = userInput.value.trim() || 'All';
+  const total=+totalInput.value;
+  const mode=modeSelect.value;
 
   try {
-    await loadWords(user);
+    await loadWords(user, total, mode);
   } catch(e){
     errorMsg.innerText='❌ Lỗi tải dữ liệu: ' + e.message;
     return;
   }
 
-  // await loadWords();
   
-  const total=+totalInput.value;
   const meaningCount=+slider.value;
-  const mode=modeSelect.value;
-
+  
   // let pool=WORDS.filter(w=>w.owner==='All'||w.owner===user);
   let pool = [...WORDS]; //already filtered at server side
 
   if(!pool.length){errorMsg.innerText='❌ Không có từ nào';return;}
 
-  pool=mode==='recent'
-    ? pool.sort((a,b)=>new Date(b.time)-new Date(a.time))
-    : shuffle(pool);
+  // pool=mode==='recent'
+  //   ? pool.sort((a,b)=>new Date(b.time)-new Date(a.time))
+  //   : shuffle(pool);
 
-  pool=pool.slice(0,total);
-  if(!pool.length){errorMsg.innerText='❌ Không đủ dữ liệu';return;}
+  // pool=pool.slice(0,total);
+  // if(!pool.length){errorMsg.innerText='❌ Không đủ dữ liệu';return;}
 
   questions=shuffle([
     ...shuffle(pool).slice(0,meaningCount).map(w=>makeMeaningQ(w,pool)),
