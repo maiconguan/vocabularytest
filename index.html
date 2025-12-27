@@ -72,6 +72,17 @@
 
     .answer-correct{margin-top:8px;font-size:14px;color:#16a34a;font-weight:600}
     .error{color:#b91c1c;font-weight:700;text-align:center}
+    .result-icon{
+  margin-top:10px;
+  font-size:22px;
+  font-weight:800;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.result-icon.correct{color:#16a34a;}
+.result-icon.incorrect{color:#dc2626;}
+
   </style>
 </head>
 <body>
@@ -120,7 +131,17 @@ speechSynthesis.onvoiceschanged = () => {
 };
 
 
-const normalize = s => (s || '').toLowerCase().trim();
+function normalizeAnswer(text){
+  if (!text) return '';
+  return text
+    .toString()
+    .trim()
+    .toLowerCase()
+    .replace(/[.,!?;]/g,'')
+    .replace(/\s+/g,' ');
+}
+
+
 
 
 let WORDS=[],questions=[],answers={};
@@ -342,14 +363,16 @@ function renderTest(){
         opt.appendChild(b);
       });
       div.appendChild(opt);
-    }else{
-      const input=document.createElement('input');
-      input.placeholder='Nhập đáp án tiếng Anh...';
-      input.oninput=e=>answers[i]=e.target.value;
+    } else {
+      const input = document.createElement('input');
+      input.placeholder = 'Nhập đáp án...';
+
+      input.oninput = () => {
+        answers[i] = input.value;
+      };
+
       div.appendChild(input);
     }
-
-
 
     test.appendChild(div);
   });
@@ -363,30 +386,89 @@ function renderTest(){
 }
 
 function submitTest(){
-  let correct=0;
+  let correct = 0;
 
-  document.querySelectorAll('.question').forEach((div,i)=>{
-    const q=questions[i];
-    const userAns = normalize(answers[i] || '');
-    const rightAns = normalize(q.answer);
+  document.querySelectorAll('.question').forEach((div, i) => {
+    const q = questions[i];
+    const userAns = answers[i];
+    let isCorrect = false;
 
-    if(userAns === rightAns){
-      correct++;
-    }else{
-      div.insertAdjacentHTML('beforeend',
-        `<div class="answer-correct">Đáp án đúng: ${q.answer}</div>`);
+    // ===== TRẮC NGHIỆM =====
+    if (q.options) {
+      div.querySelectorAll('button.secondary').forEach(b => {
+        b.disabled = true;
+
+        const text = b.innerText;
+        if (text === q.answer) b.classList.add('correct');
+        if (userAns === text && text !== q.answer) b.classList.add('incorrect');
+      });
+
+      if (userAns === q.answer) {
+        correct++;
+        isCorrect = true;
+      } else {
+        div.insertAdjacentHTML(
+          'beforeend',
+          `<div class="answer-correct">Đáp án đúng: ${q.answer}</div>`
+        );
+      }
     }
+    else {
+      const input = div.querySelector('input');
+      const userValue = input.value || '';
+      const userNorm = normalizeAnswer(userValue);
+      const correctNorm = normalizeAnswer(q.answer);
+
+      // alert(q.answer);
+
+      input.disabled = true;
+
+      if (userNorm === correctNorm) {
+        correct++;
+        isCorrect = true;
+        input.style.border = '2px solid #22c55e';
+        input.style.background = '#dcfce7';
+        input.style.color = '#166534';
+      } else {
+        input.style.border = '2px solid #ef4444';
+        input.style.background = '#fee2e2';
+        input.style.color = '#991b1b';
+
+        div.insertAdjacentHTML(
+          'beforeend',
+          `<div class="answer-correct">Đáp án đúng: ${q.answer}</div>`
+        );
+      }
+    }
+
+
+    // ===== ICON ✔ / ✖ =====
+    div.insertAdjacentHTML(
+      'beforeend',
+      isCorrect
+        ? `<div class="result-icon correct">✔ Đúng</div>`
+        : `<div class="result-icon incorrect">✖ Sai</div>`
+    );
   });
 
-const percent=Math.round(correct/questions.length*100);
-  const msg=
-    percent>=90?'🌟 Bạn làm rất tốt!':
-    percent>=75?'👍 Kết quả rất khá':
-    percent>=60?'🙂 Ổn, cần luyện thêm':'💪 Cố gắng thêm nhé';
+  test.querySelector('button.primary').disabled = true;
 
-  result.style.display='block';
-  result.innerHTML=`<h2>Kết quả</h2><p>${correct}/${questions.length} (${percent}%)</p><p>${msg}</p><button class="secondary" onclick="location.reload()">🔄 Test lại</button>`;
+  const percent = Math.round(correct / questions.length * 100);
+  const msg =
+    percent >= 90 ? '🌟 Bạn làm rất tốt!' :
+    percent >= 75 ? '👍 Kết quả rất khá' :
+    percent >= 60 ? '🙂 Ổn, cần luyện thêm' :
+                    '💪 Cố gắng thêm nhé';
+
+  result.style.display = 'block';
+  result.innerHTML = `
+    <h2>Kết quả</h2>
+    <p>${correct}/${questions.length} (${percent}%)</p>
+    <p>${msg}</p>
+    <button class="secondary" onclick="location.reload()">🔄 Làm lại</button>
+  `;
 }
+
 
 
 
