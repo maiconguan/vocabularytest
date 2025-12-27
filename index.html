@@ -113,6 +113,16 @@
 <script>
 const API_URL = 'https://script.google.com/macros/s/AKfycbwhBcb0QkG_qNnBoJDGed4RQBYapHq51dvOMm6miEUL_KbIoh-wQbML7JnOgVtxYU4V/exec';
 
+let VOICES = [];
+
+speechSynthesis.onvoiceschanged = () => {
+  VOICES = speechSynthesis.getVoices();
+};
+
+
+const normalize = s => (s || '').toLowerCase().trim();
+
+
 let WORDS=[],questions=[],answers={};
 
 const userInput=document.getElementById('user');
@@ -172,60 +182,133 @@ async function startTest(){
   }
 
   
-  const meaningCount=+slider.value;
   
   // let pool=WORDS.filter(w=>w.owner==='All'||w.owner===user);
   let pool = [...WORDS]; //already filtered at server side
 
   if(!pool.length){errorMsg.innerText='❌ Không có từ nào';return;}
 
-  // pool=mode==='recent'
-  //   ? pool.sort((a,b)=>new Date(b.time)-new Date(a.time))
-  //   : shuffle(pool);
+  const meaningCount = +slider.value;
+  const listeningCount = total - meaningCount;
 
-  // pool=pool.slice(0,total);
-  // if(!pool.length){errorMsg.innerText='❌ Không đủ dữ liệu';return;}
+  const meaningQs = shuffle(pool)
+    .slice(0, meaningCount)
+    .map(w => makeMeaningQ(w, pool));
 
-  questions=shuffle([
-    ...shuffle(pool).slice(0,meaningCount).map(w=>makeMeaningQ(w,pool)),
-    ...shuffle(pool).slice(0,total-meaningCount).map(w=>makeListeningQ(w,pool))
-  ]);
+  const listeningQs = shuffle(pool)
+    .slice(0, listeningCount)
+    .map(w => makeListeningQ(w, pool));
+
+  questions = shuffle([...meaningQs, ...listeningQs]);
+
 
   config.style.display='none';
+
+//alert(questions);
+
   renderTest();
 }
 
-function makeMeaningQ(w,p){
-  const reverse=Math.random()<0.5;
-  if(!reverse){
-    return{
+function makeMeaningQ(w, pool){
+  const type = shuffle([
+    'mc-en-vi',
+    'mc-vi-en',
+    'input-vi-en'
+  ])[0];
+
+  //alert(w.en);
+
+  if(type === 'mc-en-vi'){
+    return {
       type:'meaning',
-      question:w.en,
+      subtype:type,
+      prompt:w.en,
       answer:w.vi,
-      options:shuffle([w.vi,...shuffle(p.filter(x=>x.vi!==w.vi)).slice(0,3).map(x=>x.vi)])
+      options:shuffle([w.vi,...shuffle(pool.filter(x=>x.vi!==w.vi)).slice(0,3).map(x=>x.vi)])
     };
   }
-  return{
+
+  if(type === 'mc-vi-en'){
+    return {
+      type:'meaning',
+      subtype:type,
+      prompt:w.vi,
+      answer:w.en,
+      options:shuffle([w.en,...shuffle(pool.filter(x=>x.en!==w.en)).slice(0,3).map(x=>x.en)])
+    };
+  }
+
+  // input Vietnamese → English
+  return {
     type:'meaning',
-    question:w.vi,
-    answer:w.en,
-    options:shuffle([w.en,...shuffle(p.filter(x=>x.en!==w.en)).slice(0,3).map(x=>x.en)])
+    subtype:type,
+    prompt:w.vi,
+    answer:w.en
   };
 }
 
-function makeListeningQ(w,p){
-  return{
+
+function makeListeningQ(w, pool){
+  const type = shuffle([
+    'listen-mc-en',
+    'listen-input-vi-en',
+    'listen-input-en-en'
+  ])[0];
+
+  if(type === 'listen-mc-en'){
+    return {
+      type:'listening',
+      subtype:type,
+      audio:w.en,
+      answer:w.en,
+      options:shuffle([w.en,...shuffle(pool.filter(x=>x.en!==w.en)).slice(0,3).map(x=>x.en)])
+    };
+  }
+
+  if(type === 'listen-input-vi-en'){
+    return {
+      type:'listening',
+      subtype:type,
+      audio:w.vi,
+      answer:w.en
+    };
+  }
+
+  return {
     type:'listening',
+    subtype:type,
     audio:w.en,
-    answer:w.en,
-    options:shuffle([w.en,...shuffle(p.filter(x=>x.en!==w.en)).slice(0,3).map(x=>x.en)])
+    answer:w.en
   };
 }
 
-function speak(text){
-  const u=new SpeechSynthesisUtterance(text);
-  u.lang='en-US';speechSynthesis.speak(u);
+
+function speak(text, lang = 'en') {
+  if (!text) return;
+
+  const u = new SpeechSynthesisUtterance(text);
+
+  // map lang đơn giản → chuẩn browser
+  const langMap = {
+    en: 'en-US',
+    vi: 'vi-VN'
+  };
+
+  const finalLang = langMap[lang] || 'en-US';
+  u.lang = finalLang;
+
+  // chọn voice đúng ngôn ngữ
+  const voice = VOICES.find(v => v.lang === finalLang);
+  if (voice) u.voice = voice;
+
+  // cấu hình đọc
+  u.rate = lang === 'vi' ? 1.0 : 1.0;
+  u.pitch = 1;
+
+  speechSynthesis.cancel();
+  speechSynthesis.speak(u);
 }
+
 
 function renderTest(){
   test.style.display='block';
@@ -234,25 +317,40 @@ function renderTest(){
   questions.forEach((q,i)=>{
     const div=document.createElement('div');
     div.className='question';
-    div.innerHTML=
-      q.type==='meaning'
-        ? `<b>${i+1}. ${q.question}</b>`
-        : `<b>${i+1}. Listening</b> <button class="listen-btn" onclick="speak('${q.audio}')">🔊 Nghe</button>`;
 
-    const opt=document.createElement('div');
-    opt.className='options';
-    q.options.forEach(o=>{
-      const b=document.createElement('button');
-      b.className='secondary';
-      b.innerText=o;
-      b.onclick=()=>{
-        opt.querySelectorAll('button').forEach(x=>x.classList.remove('selected'));
-        b.classList.add('selected');
-        answers[i]=o;
-      };
-      opt.appendChild(b);
-    });
-    div.appendChild(opt);
+   let lang = 'en';
+    if (q.type === 'listening') {
+      if (q.subtype === 'listen-input-vi-en') {
+        lang = 'vi';
+      }
+    }
+    div.innerHTML= q.type==='meaning' ? `<b>${i+1}. ${q.prompt}</b>`: `<b>${i+1}. Listening</b> <button class="listen-btn" onclick="speak('${q.audio}', '${lang}')">🔊 Nghe</button>`;
+
+    if(q.options){
+      const opt=document.createElement('div');
+      opt.className='options';
+
+      q.options.forEach(o=>{
+        const b=document.createElement('button');
+        b.className='secondary';
+        b.innerText=o;
+        b.onclick=()=>{
+          opt.querySelectorAll('button').forEach(x=>x.classList.remove('selected'));
+          b.classList.add('selected');
+          answers[i]=o;
+        };
+        opt.appendChild(b);
+      });
+      div.appendChild(opt);
+    }else{
+      const input=document.createElement('input');
+      input.placeholder='Nhập đáp án tiếng Anh...';
+      input.oninput=e=>answers[i]=e.target.value;
+      div.appendChild(input);
+    }
+
+
+
     test.appendChild(div);
   });
 
@@ -266,20 +364,21 @@ function renderTest(){
 
 function submitTest(){
   let correct=0;
+
   document.querySelectorAll('.question').forEach((div,i)=>{
     const q=questions[i];
-    div.querySelectorAll('button.secondary').forEach(b=>{
-      b.disabled=true;
-      if(b.innerText===q.answer) b.classList.add('correct');
-      if(answers[i]===b.innerText && b.innerText!==q.answer) b.classList.add('incorrect');
-    });
-    if(answers[i]===q.answer) correct++;
-    else div.insertAdjacentHTML('beforeend',`<div class="answer-correct">Đáp án đúng: ${q.answer}</div>`);
+    const userAns = normalize(answers[i] || '');
+    const rightAns = normalize(q.answer);
+
+    if(userAns === rightAns){
+      correct++;
+    }else{
+      div.insertAdjacentHTML('beforeend',
+        `<div class="answer-correct">Đáp án đúng: ${q.answer}</div>`);
+    }
   });
 
-  test.querySelector('button.primary').disabled=true;
-
-  const percent=Math.round(correct/questions.length*100);
+const percent=Math.round(correct/questions.length*100);
   const msg=
     percent>=90?'🌟 Bạn làm rất tốt!':
     percent>=75?'👍 Kết quả rất khá':
@@ -288,6 +387,9 @@ function submitTest(){
   result.style.display='block';
   result.innerHTML=`<h2>Kết quả</h2><p>${correct}/${questions.length} (${percent}%)</p><p>${msg}</p><button class="secondary" onclick="location.reload()">🔄 Test lại</button>`;
 }
+
+
+
 </script>
 </body>
 </html>
