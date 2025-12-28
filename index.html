@@ -307,6 +307,12 @@ function makeListeningQ(w, pool){
 function speak(text, lang = 'en') {
   if (!text) return;
 
+  if (lang === 'vi'){
+    const audio = new Audio('https://translate.google.com/translate_tts?ie=UTF-8&tl=vi&client=tw-ob&q=' + encodeURIComponent(text));
+    audio.play();
+    return;
+  }
+
   const u = new SpeechSynthesisUtterance(text);
 
   // map lang đơn giản → chuẩn browser
