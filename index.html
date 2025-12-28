@@ -287,12 +287,14 @@ function makeListeningQ(w, pool){
   }
 
   if(type === 'listen-input-vi-en'){
-    return {
-      type:'listening',
-      subtype:type,
-      audio:w.vi,
-      answer:w.en
-    };
+    if(!isIOS()) { //temporary fix to pass speak Vietnamese on iOS
+      return {
+        type:'listening',
+        subtype:type,
+        audio:w.vi,
+        answer:w.en
+      };
+    }
   }
 
   return {
