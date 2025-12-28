@@ -303,29 +303,27 @@ function makeListeningQ(w, pool){
   };
 }
 
-const TTS_API = 'https://script.google.com/macros/s/AKfycbzzqfS5clxTDdUBL4CTPw-4qvlevircUHtcWXfjUIsAw1g6FHfXuA-bS4VSLYnmNFyQbQ/exec';
+const TTS_API = 'https://script.google.com/macros/s/AKfycbwm-urmD36iAE_65nzswGOdrvLnjIaQEiQ1Sr72QmIkx_EitYJ7JZxE84T6y8pOOl0wkQ/exec';
 function isIOS() {
   return /iPad|iPhone|iPod/.test(navigator.userAgent);
 }
-const audioCache = {};
 
-function playServerTTS(text, lang='vi') {
-  const key = lang + '_' + text;
-  if (!audioCache[key]) {
-    audioCache[key] = new Audio(
-      `${TTS_API}?text=${encodeURIComponent(text)}&lang=${lang}`
-    );
-  }
-  audioCache[key].play();
+async function playTTS(text, lang='vi') {
+  const res = await fetch(`${API_URL}?text=${encodeURIComponent(text)}&lang=${lang}`);
+  const json = await res.json();
+
+  if (!json.success) throw json.error;
+
+  const audio = new Audio(`data:${json.mime};base64,${json.base64}`);
+  await audio.play();
 }
-
 
   
 function speak(text, lang = 'en') {
   if (!text) return;
 
   if (isIOS() && lang.startsWith('vi')) {
-    playServerTTS(text, 'vi');
+    playTTS(text, 'vi');
     return;
   }
 
