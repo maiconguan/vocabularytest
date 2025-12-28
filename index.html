@@ -286,23 +286,22 @@ function makeListeningQ(w, pool){
     };
   }
 
-  if(type === 'listen-input-vi-en'){
-    if(isIOS()) { //temporary fix to pass speak Vietnamese on iOS
-      return {
+  //temporary fix to pass speak Vietnamese on iOS
+    return {
         type:'listening',
         subtype:'listen-input-en-en',
         audio:w.en,
         answer:w.en
       };
-    } else {
+  ////////////////
+
+  if(type === 'listen-input-vi-en'){
       return {
         type:'listening',
         subtype:type,
         audio:w.vi,
         answer:w.en
       };
-    }
-    
   }
 
   return {
@@ -314,8 +313,15 @@ function makeListeningQ(w, pool){
 }
 
 const TTS_API = 'https://script.google.com/macros/s/AKfycbwm-urmD36iAE_65nzswGOdrvLnjIaQEiQ1Sr72QmIkx_EitYJ7JZxE84T6y8pOOl0wkQ/exec';
+
 function isIOS() {
-  return /iPad|iPhone|iPod/.test(navigator.userAgent);
+  return (
+    /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (
+      navigator.platform === 'MacIntel' &&
+      navigator.maxTouchPoints > 1
+    )
+  );
 }
 
 async function playTTS(text, lang='vi') {
