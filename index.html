@@ -287,7 +287,14 @@ function makeListeningQ(w, pool){
   }
 
   if(type === 'listen-input-vi-en'){
-    if(!isIOS()) { //temporary fix to pass speak Vietnamese on iOS
+    if(isIOS()) { //temporary fix to pass speak Vietnamese on iOS
+      return {
+        type:'listening',
+        subtype:'listen-input-en-en',
+        audio:w.vi,
+        answer:w.en
+      };
+    } else {
       return {
         type:'listening',
         subtype:type,
@@ -295,6 +302,7 @@ function makeListeningQ(w, pool){
         answer:w.en
       };
     }
+    
   }
 
   return {
