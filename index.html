@@ -120,7 +120,7 @@
   </div>
 
   <label>Phân bố câu hỏi</label>
-  <input type="range" id="meaningCount" min="0" value="5" />
+  <input type="range" id="meaningCount" min="0" value="50" max="100" />
   <div id="sliderInfo"></div>
 
   <div style="display:flex;justify-content:center;margin-top:28px">
@@ -171,10 +171,10 @@ const test=document.getElementById('test');
 const result=document.getElementById('result');
 
 function updateSlider(){
-  const total=+totalInput.value||0;
-  slider.max=total;
-  if(+slider.value>total) slider.value=total;
-  sliderInfo.innerText=`Meaning: ${slider.value} | Listening: ${total-slider.value}`;
+  // const total=+totalInput.value||0;
+  // slider.max=total;
+  // if(+slider.value>total) slider.value=total;
+  sliderInfo.innerText=`Meaning: ${slider.value}% | Listening: ${100-slider.value}%`;
 }
 slider.oninput=updateSlider;
 totalInput.oninput=updateSlider;
@@ -226,16 +226,26 @@ async function startTest(){
 
   if(!pool.length){errorMsg.innerText='❌ Không có từ nào';return;}
 
-  const meaningCount = WORDS.length;// +slider.value;
-  const listeningCount = WORDS.length;// total - meaningCount;
+  const meaningCount =  ((+slider.value) * pool.length)/100;
+  const listeningCount = pool.length - meaningCount;
 
-  const meaningQs = shuffle(pool)
+  pool = shuffle(pool);
+
+  const meaningQs = pool
     .slice(0, meaningCount)
     .map(w => makeMeaningQ(w, pool));
 
-  const listeningQs = shuffle(pool)
-    .slice(0, listeningCount)
+  const listeningQs = pool
+    .slice(meaningCount, pool.length)
     .map(w => makeListeningQ(w, pool));
+
+  // const meaningQs = shuffle(pool)
+  //   .slice(0, meaningCount)
+  //   .map(w => makeMeaningQ(w, pool));
+
+  // const listeningQs = shuffle(pool)
+  //   .slice(0, listeningCount)
+  //   .map(w => makeListeningQ(w, pool));
 
   questions = shuffle([...meaningQs, ...listeningQs]);
 
