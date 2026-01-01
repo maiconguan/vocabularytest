@@ -73,15 +73,15 @@
     .answer-correct{margin-top:8px;font-size:14px;color:#16a34a;font-weight:600}
     .error{color:#b91c1c;font-weight:700;text-align:center}
     .result-icon{
-  margin-top:10px;
-  font-size:22px;
-  font-weight:800;
-  display:flex;
-  align-items:center;
-  gap:8px;
-}
-.result-icon.correct{color:#16a34a;}
-.result-icon.incorrect{color:#dc2626;}
+      margin-top:10px;
+      font-size:22px;
+      font-weight:800;
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .result-icon.correct{color:#16a34a;}
+    .result-icon.incorrect{color:#dc2626;}
 
   </style>
 </head>
@@ -99,6 +99,16 @@
       <label>Tổng số từ kiểm tra</label>
       <input type="number" id="total" value="10" min="1" />
     </div>
+
+    <div>
+      <label>Phạm vi từ card số:</label>
+      <input type="number" id="startRow" value="10" min="2" />
+    </div>
+    <div>
+      <label>đến card số:</label>
+      <input type="number" id="endRow" value="100" min="2" />
+    </div>
+
     <div style="grid-column:1/3">
       <label>Cách lấy từ</label>
       <select id="mode">
@@ -106,6 +116,7 @@
         <option value="random">Ngẫu nhiên</option>
       </select>
     </div>
+
   </div>
 
   <label>Phân bố câu hỏi</label>
@@ -122,7 +133,8 @@
 <div class="card" id="result" style="display:none"></div>
 
 <script>
-const API_URL = 'https://script.google.com/macros/s/AKfycbxMrMfGO0XVIWS4YXpRpcLaC0mYTJleFja0HRCKZ455-_zVZyQcjMl3WOCAtDa5BrJj/exec';
+
+const API_URL = 'https://script.google.com/macros/s/AKfycbxFwY9moTt7fMEa2JEeNe2RUQgDeg7sXGxLWD4qvDGNkSJ-dh1Ab-G4vsMOSk9r0twK/exec';
 
 let VOICES = [];
 
@@ -148,6 +160,8 @@ let WORDS=[],questions=[],answers={};
 
 const userInput=document.getElementById('user');
 const totalInput=document.getElementById('total');
+const startRowInput=document.getElementById('startRow');
+const endRowInput=document.getElementById('endRow');
 const modeSelect=document.getElementById('mode');
 const slider=document.getElementById('meaningCount');
 const sliderInfo=document.getElementById('sliderInfo');
@@ -168,13 +182,14 @@ updateSlider();
 
 const shuffle=a=>[...a].sort(()=>Math.random()-0.5);
 
-async function loadWords(user, total, mode) {
+async function loadWords(user, total, mode, start, end) {
 
   const url =
     `${API_URL}?owner=${encodeURIComponent(user)}` +
     `&limit=${total}` +
     `&mode=${mode}` +
-    `&ts=${Date.now()}`;
+    `&startRow=${start}` + 
+    `&endRow=${end}`;
 
   const res = await fetch(url);
   if (!res.ok) throw new Error('Không kết nối được server');
@@ -193,10 +208,12 @@ async function startTest(){
 
   const user = userInput.value.trim() || 'All';
   const total=+totalInput.value;
+  const startRowValue=+startRow.value;
+  const endRowValue=+endRow.value;
   const mode=modeSelect.value;
 
   try {
-    await loadWords(user, total, mode);
+    await loadWords(user, total, mode, startRowValue, endRowValue);
   } catch(e){
     errorMsg.innerText='❌ Lỗi tải dữ liệu: ' + e.message;
     return;
@@ -209,8 +226,8 @@ async function startTest(){
 
   if(!pool.length){errorMsg.innerText='❌ Không có từ nào';return;}
 
-  const meaningCount = +slider.value;
-  const listeningCount = total - meaningCount;
+  const meaningCount = WORDS.length;// +slider.value;
+  const listeningCount = WORDS.length;// total - meaningCount;
 
   const meaningQs = shuffle(pool)
     .slice(0, meaningCount)
@@ -272,7 +289,7 @@ function makeMeaningQ(w, pool){
 function makeListeningQ(w, pool){
   const type = shuffle([
     'listen-mc-en',
-    'listen-input-vi-en',
+    //'listen-input-vi-en',  //temporary comment to pass speak Vietnamese on iOS
     'listen-input-en-en'
   ])[0];
 
@@ -286,23 +303,15 @@ function makeListeningQ(w, pool){
     };
   }
 
-  //temporary fix to pass speak Vietnamese on iOS
-    return {
-        type:'listening',
-        subtype:'listen-input-en-en',
-        audio:w.en,
-        answer:w.en
-      };
-  ////////////////
-
-  if(type === 'listen-input-vi-en'){
-      return {
-        type:'listening',
-        subtype:type,
-        audio:w.vi,
-        answer:w.en
-      };
-  }
+  //temporary comment to pass speak Vietnamese on iOS
+  // if(type === 'listen-input-vi-en'){
+  //     return {
+  //       type:'listening',
+  //       subtype:type,
+  //       audio:w.vi,
+  //       answer:w.en
+  //     };
+  // }
 
   return {
     type:'listening',
