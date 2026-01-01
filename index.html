@@ -267,22 +267,39 @@ function makeMeaningQ(w, pool){
   //alert(w.en);
 
   if(type === 'mc-en-vi'){
+    let opt = shuffle([w.vi, ...shuffle([...pool.filter(x => normalizeAnswer(x.vi) !== normalizeAnswer(w.vi)).map(x => x.vi)]).slice(0, 3)]);
+    const lack = 4 - opt.length;
+    if(lack > 0) {
+      const backupVI = shuffle(["Thông tin", "Thư viện", "Vũ trụ", "Kinh nghiệm", "Kiến thức", "Cải thiện", "Thấu hiểu", "Sáng tạo", "Tin tưởng", "Phát triển", "Khác biệt", "Quan trọng", "Xuất sắc", "Tự nhiên", "Sáng tạo","Nhanh chóng", "Cẩn thận", "Thường xuyên", "Dễ dàng", "Hoàn hảo"].filter(b =>  normalizeAnswer(b) !== normalizeAnswer(w.vi) && !pool.some(p => normalizeAnswer(p.vi) === normalizeAnswer(b))));
+      opt = shuffle([...opt,...backupVI.slice(0,lack)]);
+    }
+  
+
     return {
       type:'meaning',
       subtype:type,
       prompt:w.en,
       answer:w.vi,
-      options:shuffle([w.vi,...shuffle(pool.filter(x=>x.vi!==w.vi)).slice(0,3).map(x=>x.vi)])
+      // options:shuffle([w.vi,...shuffle(pool.filter(x=>x.vi!==w.vi)).slice(0,3).map(x=>x.vi)])
+      options: opt
     };
   }
 
   if(type === 'mc-vi-en'){
+    let opt = shuffle([w.en, ...shuffle([...pool.filter(x => normalizeAnswer(x.en) !== normalizeAnswer(w.en)).map(x => x.en)]).slice(0, 3)]);
+    const lack = 4 - opt.length;
+    if(lack > 0) {
+      const backupEN = shuffle(["Information", "Library", "Universe", "Experience", "Knowledge","Improve", "Understand", "Create", "Believe", "Develop","Different", "Important", "Excellent", "Natural", "Creative","Quickly", "Carefully", "Usually", "Easily", "Perfectly"].filter(b =>  normalizeAnswer(b) !== normalizeAnswer(w.en) && !pool.some(p => normalizeAnswer(p.en) === normalizeAnswer(b))));
+      opt = shuffle([...opt,...backupEN.slice(0,lack)]);
+    }
+
     return {
       type:'meaning',
       subtype:type,
       prompt:w.vi,
       answer:w.en,
-      options:shuffle([w.en,...shuffle(pool.filter(x=>x.en!==w.en)).slice(0,3).map(x=>x.en)])
+      //options:shuffle([w.en,...shuffle(pool.filter(x=>x.en!==w.en)).slice(0,3).map(x=>x.en)])
+      options: opt
     };
   }
 
