@@ -102,11 +102,11 @@
 
     <div>
       <label>Phạm vi từ card số:</label>
-      <input type="number" id="startRow" value="10" min="2" />
+      <input type="number" id="startRow" value="2" min="2" />
     </div>
     <div>
       <label>đến card số:</label>
-      <input type="number" id="endRow" value="100" min="2" />
+      <input type="number" id="endRow" value="1000" min="2" />
     </div>
 
     <div style="grid-column:1/3">
@@ -212,6 +212,7 @@ async function startTest(){
   const endRowValue=+endRow.value;
   const mode=modeSelect.value;
 
+  errorMsg.innerText='⏳ Đang tải dữ liệu. Vui lòng chờ...';
   try {
     await loadWords(user, total, mode, startRowValue, endRowValue);
   } catch(e){
@@ -219,12 +220,14 @@ async function startTest(){
     return;
   }
 
-  
-  
-  // let pool=WORDS.filter(w=>w.owner==='All'||w.owner===user);
-  let pool = [...WORDS]; //already filtered at server side
+  if(!WORDS.length){errorMsg.innerText='❌ Không có từ nào';return;}
 
-  if(!pool.length){errorMsg.innerText='❌ Không có từ nào';return;}
+  restartTest();
+  renderTest();
+}
+
+function restartTest (){
+  let pool = [...WORDS]; //already filtered at server side
 
   const meaningCount =  ((+slider.value) * pool.length)/100;
   const listeningCount = pool.length - meaningCount;
@@ -239,24 +242,15 @@ async function startTest(){
     .slice(meaningCount, pool.length)
     .map(w => makeListeningQ(w, pool));
 
-  // const meaningQs = shuffle(pool)
-  //   .slice(0, meaningCount)
-  //   .map(w => makeMeaningQ(w, pool));
-
-  // const listeningQs = shuffle(pool)
-  //   .slice(0, listeningCount)
-  //   .map(w => makeListeningQ(w, pool));
-
   questions = shuffle([...meaningQs, ...listeningQs]);
 
-
   config.style.display='none';
-
-//alert(questions);
+  result.style.display = 'none';
 
   renderTest();
-}
 
+  window.scrollTo({top:0,behavior:'smooth'});
+}
 function makeMeaningQ(w, pool){
   const type = shuffle([
     'mc-en-vi',
@@ -536,12 +530,15 @@ function submitTest(){
   result.innerHTML = `
     <h2>Kết quả</h2>
     <p>${correct}/${questions.length} (${percent}%)</p>
-    <p>${msg}</p>
-    <button class="secondary" onclick="location.reload()">🔄 Làm lại</button>
+     <p>${msg}</p>
+   <div style="display:flex;gap:12px;justify-content:center;margin-top:20px">
+    <button class="primary" onclick="restartTest()">🔄 Làm lại</button>
+    <button class="primary" onclick="location.reload()">⚙️ Tạo mới</button>
+    </div>    
   `;
+
+  window.scroll(0, document.documentElement.scrollHeight);
 }
-
-
 
 
 </script>
